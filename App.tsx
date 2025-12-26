@@ -16,7 +16,8 @@ import {
   LogOut,
   User as UserIcon,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Crown
 } from 'lucide-react';
 import { AppState, Tab, Theme } from './types';
 import { INITIAL_USER, MOCK_TUTORIALS, MOCK_LEADERBOARD } from './constants';
@@ -25,15 +26,15 @@ import Arena from './components/Arena';
 import Dojo from './components/Dojo';
 import Leaderboard from './components/Leaderboard';
 import RewardsModal from './components/RewardsModal';
+import Pricing from './components/Pricing';
 
 const App: React.FC = () => {
-  // Initialize state with theme from localStorage if available
   const [state, setState] = useState<AppState>(() => {
     const savedTheme = localStorage.getItem('dragonstream_theme') as Theme;
     return {
       currentPage: 'dashboard',
       theme: savedTheme || 'dark',
-      user: INITIAL_USER,
+      user: { ...INITIAL_USER, subscription: 'free' },
       leaderboard: MOCK_LEADERBOARD,
       tutorials: MOCK_TUTORIALS,
       sidebarOpen: false
@@ -45,7 +46,6 @@ const App: React.FC = () => {
     type: 'tshirt'
   });
 
-  // Theme logic handler
   const applyTheme = useCallback((theme: Theme) => {
     const root = window.document.documentElement;
     let effectiveTheme = theme;
@@ -63,12 +63,10 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Theme effect and system listener
   useEffect(() => {
     applyTheme(state.theme);
     localStorage.setItem('dragonstream_theme', state.theme);
 
-    // Listen for system theme changes if in 'system' mode
     if (state.theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = () => applyTheme('system');
@@ -87,6 +85,7 @@ const App: React.FC = () => {
       case 'arena': return <Arena onPredictWinner={() => setRewardModal({ isOpen: true, type: 'tshirt' })} />;
       case 'dojo': return <Dojo tutorials={state.tutorials} />;
       case 'leaderboard': return <Leaderboard entries={state.leaderboard} currentUserName={state.user.name} />;
+      case 'membership': return <Pricing user={state.user} />;
       default: return <Dashboard user={state.user} />;
     }
   };
@@ -108,7 +107,6 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen transition-colors duration-300 font-sans ${state.theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       
-      {/* Settings Backdrop Overlay */}
       <div 
         className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
           state.sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -116,7 +114,6 @@ const App: React.FC = () => {
         onClick={toggleSidebar}
       />
 
-      {/* Slide-in Settings Menu */}
       <aside className={`fixed top-0 left-0 h-full w-full max-w-[340px] bg-white dark:bg-gray-900 z-50 transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl border-r border-gray-100 dark:border-gray-800 ${
         state.sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
@@ -135,7 +132,6 @@ const App: React.FC = () => {
           </div>
 
           <div className="space-y-10 flex-1">
-            {/* Theme Section */}
             <div>
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-5 flex items-center">
                 <Sun size={14} className="mr-2" /> Appearance Mode
@@ -162,17 +158,21 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Profile Section */}
             <div>
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-4">Account Control</label>
               <div className="space-y-1">
                 {[
                   { icon: UserIcon, label: 'Edit Profile', color: 'text-blue-500' },
                   { icon: ShieldCheck, label: 'Privacy & Security', color: 'text-green-500' },
+                  { icon: Crown, label: 'Active Membership', color: 'text-orange-500', action: () => setPage('membership') },
                   { icon: Bell, label: 'Notifications', color: 'text-purple-500' },
                   { icon: Trophy, label: 'Reward History', color: 'text-yellow-500' }
                 ].map((item, i) => (
-                  <button key={i} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
+                  <button 
+                    key={i} 
+                    onClick={item.action}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                  >
                     <div className="flex items-center space-x-4">
                       <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-900 ${item.color}`}>
                         <item.icon size={18} />
@@ -195,7 +195,6 @@ const App: React.FC = () => {
         </div>
       </aside>
 
-      {/* Top Navbar */}
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -234,13 +233,13 @@ const App: React.FC = () => {
       </header>
 
       <div className="max-w-7xl mx-auto flex h-[calc(100vh-64px)] overflow-hidden">
-        {/* Main Desktop Sidebar Nav */}
         <nav className="w-64 p-6 hidden lg:flex flex-col border-r border-gray-200 dark:border-gray-800">
           <div className="space-y-2 flex-1">
             <NavItem icon={LayoutDashboard} label="Dashboard" tab="dashboard" />
             <NavItem icon={Play} label="Arena" tab="arena" />
             <NavItem icon={Wand2} label="Dojo" tab="dojo" />
             <NavItem icon={Trophy} label="Leaderboard" tab="leaderboard" />
+            <NavItem icon={Crown} label="Membership" tab="membership" />
           </div>
           
           <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
@@ -254,19 +253,18 @@ const App: React.FC = () => {
           </div>
         </nav>
 
-        {/* Content Area */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
           {renderPage()}
         </main>
       </div>
 
-      {/* Mobile Bottom Nav */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-2 flex justify-around items-center z-40 pb-safe">
         {[
           { tab: 'dashboard', icon: LayoutDashboard },
           { tab: 'arena', icon: Play },
           { tab: 'dojo', icon: Wand2 },
-          { tab: 'leaderboard', icon: Trophy }
+          { tab: 'leaderboard', icon: Trophy },
+          { tab: 'membership', icon: Crown }
         ].map((item) => (
           <button
             key={item.tab}
@@ -285,7 +283,6 @@ const App: React.FC = () => {
         </button>
       </nav>
 
-      {/* Modals */}
       <RewardsModal 
         isOpen={rewardModal.isOpen} 
         onClose={() => setRewardModal(prev => ({ ...prev, isOpen: false }))} 

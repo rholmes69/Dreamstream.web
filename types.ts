@@ -1,11 +1,12 @@
 
 export type Theme = 'light' | 'dark' | 'system';
-export type Tab = 'dashboard' | 'arena' | 'dojo' | 'leaderboard';
+export type Tab = 'dashboard' | 'arena' | 'dojo' | 'leaderboard' | 'membership';
 
 export interface User {
   name: string;
   points: number;
   ranking: number;
+  subscription?: 'free' | 'elite' | 'master';
 }
 
 export interface LeaderboardEntry {
