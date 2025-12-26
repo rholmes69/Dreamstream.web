@@ -1,12 +1,26 @@
 
 import React, { useState } from 'react';
 import { Check, ShieldCheck, Zap, Crown, Star, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
 import { User } from '../types';
 
 interface PricingProps {
   user: User;
 }
+
+/**
+ * Safely access environment variables with fallbacks.
+ * Uses optional chaining to prevent crashes if import.meta.env is undefined.
+ */
+const getEnvVar = (key: string): string | undefined => {
+  try {
+    const meta = import.meta as any;
+    return meta.env?.[key];
+  } catch (e) {
+    return undefined;
+  }
+};
+
+const STRIPE_CHECKOUT_URL = getEnvVar('VITE_STRIPE_CHECKOUT_URL') || "https://buy.stripe.com/test_4gM14p8bE57Vbkg9mY2Fa00";
 
 const PLANS = [
   {
@@ -43,30 +57,18 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const getStripeKey = () => {
-    try {
-      // Use standard Vite env access with safe fallback
-      return (import.meta as any).env.VITE_STRIPE_PUBLIC_KEY || '';
-    } catch (e) {
-      return '';
-    }
+    return getEnvVar('VITE_STRIPE_PUBLIC_KEY') || '';
   };
 
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free') return;
     
     setLoadingPlan(planId);
-    const stripePublicKey = getStripeKey();
     
-    if (!stripePublicKey || stripePublicKey.includes('your_actual_public_key')) {
-        console.warn('Stripe Public Key is missing. Check your .env configuration.');
-    }
-
-    console.log(`Initializing DragonStream Upgrade for ${planId}...`);
-    
+    // Simulate a brief delay for UX before redirecting to the Stripe Payment Link
     setTimeout(() => {
-      alert(`Stripe Checkout Session Initiated\n\nPlan: ${planId.toUpperCase()}\nSecurity Key: ${stripePublicKey ? 'DETECTED' : 'MISSING'}\n\nRedirecting to secure payment portal...`);
-      setLoadingPlan(null);
-    }, 1200);
+      window.location.href = STRIPE_CHECKOUT_URL;
+    }, 800);
   };
 
   const hasApiKey = !!getStripeKey();
@@ -89,7 +91,7 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
       {!hasApiKey && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl flex items-center space-x-4 text-amber-800 dark:text-amber-200 shadow-sm">
             <AlertCircle size={20} className="shrink-0" />
-            <p className="text-xs font-bold uppercase tracking-wide">Developer Insight: Add VITE_STRIPE_PUBLIC_KEY to your environment to enable real transactions.</p>
+            <p className="text-xs font-bold uppercase tracking-wide">Secure Checkout enabled via DragonStream Payment Links.</p>
         </div>
       )}
 
@@ -191,7 +193,7 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
           </div>
           <div>
             <h4 className="font-bold uppercase tracking-tight">Secure Cloud Banking</h4>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">Encrypted by Stripe protocols for global safety.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">Transactions are protected by industry-standard encryption protocols.</p>
           </div>
         </div>
         <div className="flex space-x-3 grayscale opacity-40">
