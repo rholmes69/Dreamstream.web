@@ -28,6 +28,9 @@ import Leaderboard from './components/Leaderboard';
 import RewardsModal from './components/RewardsModal';
 import Pricing from './components/Pricing';
 
+// The circular brand logo provided by the user
+const DRAGON_LOGO_URL = "https://i.ibb.co/Xrn34zB/Little-Dragon-Logo.png"; 
+
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>(() => {
     const savedTheme = localStorage.getItem('dragonstream_theme') as Theme;
@@ -119,9 +122,19 @@ const App: React.FC = () => {
       }`}>
         <div className="p-8 flex flex-col h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-sm font-black text-orange-500 uppercase tracking-[0.2em] mb-1">DragonStream</h2>
-              <h3 className="text-2xl font-display font-black tracking-tight">SETTINGS</h3>
+            <div className="flex items-center space-x-3">
+              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-orange-500 p-0.5 shadow-xl shadow-orange-500/30 group cursor-pointer">
+                <img 
+                  src={DRAGON_LOGO_URL} 
+                  alt="Little Dragon VFX Logo" 
+                  className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-500" 
+                  onError={(e) => { e.currentTarget.src = "https://api.dicebear.com/7.x/icons/svg?seed=dragon&backgroundColor=f97316"; }}
+                />
+              </div>
+              <div>
+                <h2 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mb-0.5 leading-none">DragonStream</h2>
+                <h3 className="text-xl font-display font-black tracking-tight leading-none">SETTINGS</h3>
+              </div>
             </div>
             <button 
               onClick={toggleSidebar} 
@@ -201,9 +214,14 @@ const App: React.FC = () => {
             <button onClick={toggleSidebar} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors group">
               <Settings size={22} className="text-gray-500 dark:text-gray-400 group-hover:rotate-45 transition-transform" />
             </button>
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/40">
-                <span className="text-white font-display font-black text-xl">D</span>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-orange-500 p-0.5 shadow-md shadow-orange-500/10 hover:scale-110 transition-transform cursor-pointer">
+                <img 
+                  src={DRAGON_LOGO_URL} 
+                  alt="Logo" 
+                  className="w-full h-full object-cover rounded-full" 
+                  onError={(e) => { e.currentTarget.src = "https://api.dicebear.com/7.x/icons/svg?seed=dragon&backgroundColor=f97316"; }} 
+                />
               </div>
               <span className="font-display font-black text-xl tracking-tighter hidden sm:block uppercase">Dragon<span className="text-orange-500">Stream</span></span>
             </div>
@@ -253,7 +271,7 @@ const App: React.FC = () => {
           </div>
         </nav>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-0 md:p-0 custom-scrollbar">
           {renderPage()}
         </main>
       </div>

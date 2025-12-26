@@ -4,7 +4,8 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } fro
 import { 
   TrendingUp, Star, Award, Save, Settings2, X, 
   ChevronUp, ChevronDown, Eye, EyeOff, Settings, 
-  Clock, Check, Filter, ThumbsUp, PlusCircle, RefreshCcw
+  Clock, Check, Filter, ThumbsUp, PlusCircle, RefreshCcw,
+  Zap, PlayCircle, Info, Sparkles
 } from 'lucide-react';
 import { SkillMetric, User } from '../types';
 import { SKILL_METRICS } from '../constants';
@@ -53,6 +54,9 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     settings: { limit: 4 } 
   },
 ];
+
+// The cinematic mountain monastery banner provided by the user
+const CINEMATIC_BANNER_URL = "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=1600"; 
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [isManageOpen, setIsManageOpen] = useState(false);
@@ -301,87 +305,155 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24 lg:pb-8">
-      {/* Dashboard Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-xl shadow-black/5">
-        <div className="flex items-center space-x-5">
-          <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-            <Settings2 size={28} className="text-white" />
+    <div className="space-y-0 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24 lg:pb-8">
+      {/* Cinematic Hero Banner - Updated with Cloud-covered Mountain Monastery Image */}
+      <div className="relative h-[400px] md:h-[650px] w-full overflow-hidden mb-[-140px]">
+        <img 
+          src={CINEMATIC_BANNER_URL} 
+          alt="Cinematic VFX Competition Banner" 
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // High-quality backup if the specific link breaks
+            e.currentTarget.src = "https://images.unsplash.com/photo-1599305090598-fe179d501c27?auto=format&fit=crop&q=80&w=1600";
+          }}
+        />
+        {/* Layered Gradient Overlay for premium cinematic look */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-50 dark:from-gray-900 via-transparent to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent hidden md:block" />
+        
+        <div className="absolute top-16 left-8 md:left-16 z-10 space-y-8 max-w-2xl">
+          <div className="inline-flex items-center space-x-3 bg-orange-600/90 backdrop-blur-md text-white px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-orange-500/40 animate-bounce">
+            <Sparkles size={18} fill="white" className="animate-pulse" />
+            <span>SEASON 1 GRAND FINALE</span>
           </div>
-          <div>
-            <h2 className="text-3xl font-display font-black tracking-tight uppercase italic leading-none mb-1">Command <span className="text-orange-500">Center</span></h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest opacity-60">Personalized Telemetry Control</p>
+          <div className="space-y-4">
+            <h1 className="text-6xl md:text-9xl font-display font-black text-white drop-shadow-2xl uppercase italic tracking-tighter leading-none">
+              EPIC <span className="text-orange-500">SHOWDOWN</span>
+            </h1>
+            <p className="text-white text-xl md:text-3xl font-display font-bold italic tracking-tight drop-shadow-lg opacity-95">
+              Mountain Temple Arena. Martial Mastery. Cinematic Combat.
+            </p>
+          </div>
+          <p className="text-white/80 max-w-xl font-medium text-lg drop-shadow-lg leading-relaxed hidden md:block border-l-4 border-orange-500 pl-6 py-2 bg-black/20 backdrop-blur-sm rounded-r-2xl">
+            Witness the fusion of martial arts mastery and cutting-edge visual effects. Cast your votes live and influence the judges' scores in real-time.
+          </p>
+          <div className="flex items-center space-x-6">
+             <button className="bg-orange-500 hover:bg-orange-600 text-white font-black px-10 py-5 rounded-[2rem] shadow-2xl shadow-orange-500/40 transition-all active:scale-95 uppercase tracking-[0.2em] text-sm">
+                Watch Live Arena
+             </button>
+             <div className="hidden lg:flex items-center space-x-3 text-white/90 font-black text-xs uppercase tracking-[0.2em] bg-white/10 backdrop-blur-xl px-6 py-5 rounded-[2rem] border border-white/20">
+                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]"></span>
+                <span>2,451 Spectators Live</span>
+             </div>
           </div>
         </div>
-        <button 
-          onClick={() => setIsManageOpen(true)}
-          className="flex items-center justify-center space-x-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black px-8 py-4 rounded-2xl hover:bg-orange-500 dark:hover:bg-orange-500 dark:hover:text-white transition-all shadow-xl active:scale-95 text-xs uppercase tracking-[0.2em]"
-        >
-          <Settings size={18} />
-          <span>Manage Layout</span>
-        </button>
+
+        {/* Cinematic Badge for Banner visual consistency */}
+        <div className="absolute bottom-48 right-16 hidden xl:block z-10">
+           <div className="bg-white/10 backdrop-blur-2xl border border-white/30 p-8 rounded-[3rem] shadow-2xl space-y-5 transform hover:scale-105 transition-transform duration-500">
+              <div className="flex items-center justify-between">
+                 <div className="text-[10px] font-black text-white/60 uppercase tracking-widest">Active Match</div>
+                 <div className="bg-orange-500/20 p-2 rounded-xl">
+                    <Zap size={18} className="text-orange-500" />
+                 </div>
+              </div>
+              <div className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-none">KEN <span className="text-orange-500">RYU</span></div>
+              <div className="flex items-center justify-between text-[10px] font-black text-white/40 uppercase tracking-widest pt-2">
+                 <span>Current Standing</span>
+                 <span className="text-orange-500">9.8 Score</span>
+              </div>
+           </div>
+        </div>
       </div>
 
-      {/* Widget Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {widgets.filter(w => w.visible).map(w => renderWidget(w.id, w.settings))}
+      <div className="px-4 md:px-12 space-y-12 relative z-20">
+        {/* Dashboard Header - Command Center Overlapping Banner for depth */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white/95 dark:bg-gray-800/95 backdrop-blur-3xl p-12 rounded-[4rem] border border-white/50 dark:border-gray-700/60 shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-700 hover:shadow-orange-500/15">
+          <div className="flex items-center space-x-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-700 rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-orange-500/50 transform -rotate-6 hover:rotate-0 transition-all duration-500 group">
+              <Settings2 size={40} className="text-white group-hover:rotate-90 transition-transform duration-700" />
+            </div>
+            <div>
+              <h2 className="text-5xl font-display font-black tracking-tighter uppercase italic leading-none mb-2">Command <span className="text-orange-500">Center</span></h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-[0.3em] opacity-70">Personalized Competition Telemetry & Analytics</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="bg-gray-100 dark:bg-gray-950 rounded-[2.5rem] px-8 py-4 border border-gray-200 dark:border-gray-800 shadow-inner">
+               <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Current XP</div>
+               <div className="text-2xl font-display font-black text-orange-500">15,400 <span className="text-[10px] text-gray-400 font-black ml-1">PTS</span></div>
+            </div>
+            <button 
+              onClick={() => setIsManageOpen(true)}
+              className="flex items-center justify-center space-x-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black px-12 py-6 rounded-[2.5rem] hover:bg-orange-500 dark:hover:bg-orange-500 dark:hover:text-white transition-all shadow-2xl active:scale-95 text-sm uppercase tracking-[0.3em]"
+            >
+              <Settings size={22} />
+              <span>Customize UI</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Widget Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pb-20">
+          {widgets.filter(w => w.visible).map(w => renderWidget(w.id, w.settings))}
+        </div>
       </div>
 
       {/* Expanded Widget Management Overlay */}
       {isManageOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsManageOpen(false)} />
-          <div className="relative bg-gray-100 dark:bg-gray-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 border border-white/20">
-            <div className="p-8 sm:p-10">
-              <div className="flex items-center justify-between mb-8">
+          <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-2xl animate-in fade-in duration-500" onClick={() => setIsManageOpen(false)} />
+          <div className="relative bg-gray-100 dark:bg-gray-950 w-full max-w-2xl rounded-[4rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-700 border border-white/20">
+            <div className="p-12 sm:p-16">
+              <div className="flex items-center justify-between mb-12">
                 <div>
-                  <h3 className="text-2xl font-display font-black tracking-tight uppercase italic leading-none mb-1">Layout <span className="text-orange-500">Editor</span></h3>
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Add, Remove & Reorder</p>
+                  <h3 className="text-4xl font-display font-black tracking-tighter uppercase italic leading-none mb-3">Display <span className="text-orange-500">Architect</span></h3>
+                  <p className="text-xs text-gray-400 font-black uppercase tracking-[0.2em]">Configure your live telemetry dashboard</p>
                 </div>
-                <button onClick={() => setIsManageOpen(false)} className="p-3 bg-white dark:bg-gray-800 hover:bg-orange-500 hover:text-white transition-all rounded-2xl shadow-sm">
-                  <X size={20} />
+                <button onClick={() => setIsManageOpen(false)} className="p-5 bg-white dark:bg-gray-800 hover:bg-orange-500 hover:text-white transition-all rounded-[2rem] shadow-2xl">
+                  <X size={28} />
                 </button>
               </div>
 
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-10 max-h-[55vh] overflow-y-auto pr-6 custom-scrollbar">
                 {/* Active Widgets */}
-                <div className="space-y-3">
-                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Active Dashboard Widgets</div>
+                <div className="space-y-6">
+                  <div className="text-[10px] font-black text-orange-500 uppercase tracking-[0.25em] px-4">Enabled Modules</div>
                   {widgets.map((widget, index) => (
-                    <div key={widget.id} className="bg-white dark:bg-gray-800 rounded-[2rem] border border-transparent hover:border-orange-500/20 transition-all p-1 shadow-sm overflow-hidden">
-                      <div className="flex items-center justify-between p-4">
-                        <div className="flex items-center space-x-4">
+                    <div key={widget.id} className="bg-white dark:bg-gray-900 rounded-[3rem] border-2 border-transparent hover:border-orange-500/30 transition-all p-2 shadow-xl group">
+                      <div className="flex items-center justify-between p-6">
+                        <div className="flex items-center space-x-6">
                           <button 
                             onClick={() => toggleVisibility(widget.id)}
-                            className={`p-3 rounded-xl transition-all shadow-sm ${widget.visible ? 'text-orange-500 bg-orange-50 dark:bg-orange-500/10' : 'text-gray-400 bg-gray-100 dark:bg-gray-700/50 grayscale'}`}
+                            className={`p-5 rounded-[1.5rem] transition-all shadow-xl ${widget.visible ? 'text-orange-500 bg-orange-50 dark:bg-orange-500/10' : 'text-gray-400 bg-gray-100 dark:bg-gray-800 grayscale'}`}
                           >
-                            {widget.visible ? <Eye size={18} /> : <EyeOff size={18} />}
+                            {widget.visible ? <Eye size={24} /> : <EyeOff size={24} />}
                           </button>
                           <div className="flex flex-col">
-                            <span className={`font-black uppercase tracking-tight text-sm ${widget.visible ? 'opacity-100' : 'opacity-40'}`}>{widget.label}</span>
+                            <span className={`font-black uppercase tracking-tight text-lg ${widget.visible ? 'opacity-100' : 'opacity-40'}`}>{widget.label}</span>
                             <button 
                               onClick={() => setExpandedWidget(expandedWidget === widget.id ? null : widget.id)}
-                              className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center mt-1 hover:underline"
+                              className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center mt-2.5 hover:underline group-hover:translate-x-2 transition-transform"
                             >
-                              <Settings size={10} className="mr-1" /> Configure
+                              <Settings size={14} className="mr-2" /> Module Parameters
                             </button>
                           </div>
                         </div>
-                        <div className="flex space-x-1 pr-2">
-                          <button onClick={() => moveWidget(index, 'up')} disabled={index === 0} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl disabled:opacity-20 transition-colors">
-                            <ChevronUp size={16} />
+                        <div className="flex flex-col space-y-2 pr-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => moveWidget(index, 'up')} disabled={index === 0} className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl disabled:opacity-20 transition-colors">
+                            <ChevronUp size={24} />
                           </button>
-                          <button onClick={() => moveWidget(index, 'down')} disabled={index === widgets.length - 1} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl disabled:opacity-20 transition-colors">
-                            <ChevronDown size={16} />
+                          <button onClick={() => moveWidget(index, 'down')} disabled={index === widgets.length - 1} className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl disabled:opacity-20 transition-colors">
+                            <ChevronDown size={24} />
                           </button>
                         </div>
                       </div>
                       
                       {expandedWidget === widget.id && (
-                        <div className="px-5 pb-6 pt-2 border-t border-gray-50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/20 animate-in slide-in-from-top-2 duration-300">
-                          <div className="flex items-center space-x-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                            <Filter size={10} />
-                            <span>Configuration Parameters</span>
+                        <div className="px-8 pb-10 pt-6 border-t border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 animate-in slide-in-from-top-6 duration-700 rounded-b-[3rem]">
+                          <div className="flex items-center space-x-3 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">
+                            <Filter size={14} />
+                            <span>Precision Logic Controls</span>
                           </div>
                           {renderWidgetConfigPanel(widget)}
                         </div>
@@ -389,32 +461,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                     </div>
                   ))}
                 </div>
-
-                {/* Available to Add Gallery (Conceptual if visibility is used for Remove) */}
-                {widgets.some(w => !w.visible) && (
-                  <div className="space-y-3 pt-4">
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Available Gallery</div>
-                    <div className="grid grid-cols-1 gap-2">
-                      {widgets.filter(w => !w.visible).map(w => (
-                        <button 
-                          key={w.id}
-                          onClick={() => toggleVisibility(w.id)}
-                          className="flex items-center justify-between p-4 bg-gray-200 dark:bg-gray-800/50 rounded-2xl hover:bg-orange-500 hover:text-white transition-all group"
-                        >
-                          <span className="font-bold text-sm uppercase tracking-tight">{w.label}</span>
-                          <PlusCircle size={20} className="opacity-50 group-hover:opacity-100" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
 
               <button 
                 onClick={() => setIsManageOpen(false)}
-                className="w-full mt-10 bg-orange-500 text-white font-black py-5 rounded-[2rem] hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 uppercase tracking-[0.25em] text-xs active:scale-95"
+                className="w-full mt-16 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black py-7 rounded-[3rem] hover:bg-orange-500 dark:hover:bg-orange-500 dark:hover:text-white transition-all shadow-[0_20px_40px_rgba(0,0,0,0.2)] uppercase tracking-[0.35em] text-xs active:scale-95"
               >
-                Apply Changes
+                Save Live Layout
               </button>
             </div>
           </div>
