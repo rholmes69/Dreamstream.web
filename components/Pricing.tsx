@@ -47,8 +47,8 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
     
     setLoadingPlan(planId);
     
-    // The key is retrieved from the environment variable defined in the .env file.
-    const stripePublicKey = process.env.VITE_STRIPE_PUBLIC_KEY || '';
+    // Using import.meta.env for Vite environment variables
+    const stripePublicKey = (import.meta as any).env?.VITE_STRIPE_PUBLIC_KEY || '';
     
     if (!stripePublicKey || stripePublicKey.includes('your_actual_public_key')) {
         console.warn('Stripe Public Key is missing or using placeholder. Please update your .env file.');
@@ -57,15 +57,13 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
     // Simulate Stripe Redirection Flow for the prototype
     console.log(`Initializing Stripe Checkout for ${planId} with key: ${stripePublicKey}`);
     
-    // In a production environment:
-    // const stripe = await loadStripe(stripePublicKey);
-    // const { error } = await stripe.redirectToCheckout({ lineItems: [{ price: 'price_id', quantity: 1 }], mode: 'subscription', successUrl: window.location.origin, cancelUrl: window.location.origin });
-
     setTimeout(() => {
       alert(`Stripe Integration Active\n\nPlan: ${planId.toUpperCase()}\nKey Found: ${stripePublicKey ? '✅ Yes' : '❌ No'}\n\nThis would now redirect to the secure Stripe Checkout hosted page.`);
       setLoadingPlan(null);
     }, 1500);
   };
+
+  const hasApiKey = !!(import.meta as any).env?.VITE_STRIPE_PUBLIC_KEY;
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -82,7 +80,7 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
         </p>
       </div>
 
-      {!process.env.VITE_STRIPE_PUBLIC_KEY && (
+      {!hasApiKey && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl flex items-center space-x-4 text-amber-800 dark:text-amber-200">
             <AlertCircle size={20} />
             <p className="text-xs font-bold uppercase tracking-wide">Developer Note: Add VITE_STRIPE_PUBLIC_KEY to your .env file to enable live checkout.</p>
