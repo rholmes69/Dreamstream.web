@@ -4,21 +4,14 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } fro
 import { 
   TrendingUp, Star, Award, Save, Settings2, X, 
   ChevronUp, ChevronDown, Eye, EyeOff, Settings, 
-  Clock, Check, Filter 
+  Clock, Check, Filter, ThumbsUp, PlusCircle
 } from 'lucide-react';
 import { SkillMetric, User } from '../types';
 import { SKILL_METRICS } from '../constants';
 
 interface DashboardProps { user: User; }
 
-type WidgetId = 'skills_radar' | 'rewards_card' | 'student_list' | 'critique_panel';
-
-interface WidgetSettings {
-  skills_radar: { enabledMetrics: string[] };
-  student_list: { timeRange: 'Today' | 'This Week' | 'This Month' };
-  rewards_card: { showStats: boolean };
-  critique_panel: { limit: number };
-}
+type WidgetId = 'skills_radar' | 'rewards_progress' | 'student_voting' | 'judge_scores';
 
 interface WidgetConfig {
   id: WidgetId;
@@ -35,20 +28,20 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     settings: { enabledMetrics: SKILL_METRICS.map(m => m.subject) } 
   },
   { 
-    id: 'rewards_card', 
+    id: 'rewards_progress', 
     label: 'Rewards Progress', 
     visible: true, 
     settings: { showStats: true } 
   },
   { 
-    id: 'student_list', 
-    label: 'Active Students', 
+    id: 'student_voting', 
+    label: 'Student Voting', 
     visible: true, 
     settings: { timeRange: 'This Week' } 
   },
   { 
-    id: 'critique_panel', 
-    label: 'Judge Critiques', 
+    id: 'judge_scores', 
+    label: 'Judge Scores', 
     visible: true, 
     settings: { limit: 4 } 
   },
@@ -57,13 +50,14 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [expandedWidget, setExpandedWidget] = useState<WidgetId | null>(null);
+  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
-    const saved = localStorage.getItem('dragonstream_widget_config_v2');
+    const saved = localStorage.getItem('dragonstream_dashboard_v3');
     return saved ? JSON.parse(saved) : DEFAULT_WIDGETS;
   });
 
   useEffect(() => {
-    localStorage.setItem('dragonstream_widget_config_v2', JSON.stringify(widgets));
+    localStorage.setItem('dragonstream_dashboard_v3', JSON.stringify(widgets));
   }, [widgets]);
 
   const toggleVisibility = (id: WidgetId) => {
@@ -80,6 +74,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     if (targetIndex < 0 || targetIndex >= newWidgets.length) return;
     [newWidgets[index], newWidgets[targetIndex]] = [newWidgets[targetIndex], newWidgets[index]];
     setWidgets(newWidgets);
+  };
+
+  const handleVote = (name: string) => {
+    if (votedIds.has(name)) return;
+    setVotedIds(prev => new Set(prev).add(name));
   };
 
   const renderWidget = (id: WidgetId, settings: any) => {
@@ -106,7 +105,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             </div>
           </div>
         );
-      case 'rewards_card':
+      case 'rewards_progress':
         return (
           <div key={id} className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl p-6 text-white shadow-xl shadow-orange-500/30 animate-in fade-in zoom-in duration-300 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
@@ -126,11 +125,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest">Locked: Golden Katana VFX Asset</p>
           </div>
         );
-      case 'student_list':
+      case 'student_voting':
         return (
           <div key={id} className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h4 className="font-display font-black uppercase tracking-tight text-lg">Active <span className="text-orange-500">Students</span></h4>
+              <h4 className="font-display font-black uppercase tracking-tight text-lg">Student <span className="text-orange-500">Voting</span></h4>
               <div className="flex items-center text-[10px] font-black text-gray-400 uppercase tracking-widest">
                 <Clock size={12} className="mr-1" /> {settings.timeRange}
               </div>
@@ -141,26 +140,36 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 { name: 'Luna Stark', score: 9.5, img: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=luna' },
                 { name: 'Marcus Jin', score: 9.2, img: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=marcus' },
               ].map((student, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-gray-900/50 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all cursor-pointer group">
+                <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-gray-900/50 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all group">
                   <div className="flex items-center space-x-3">
                     <img src={student.img} className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 border-2 border-transparent group-hover:border-orange-500 transition-all" alt="" />
                     <div>
                       <div className="text-sm font-black uppercase tracking-tight">{student.name}</div>
-                      <div className="text-[10px] text-gray-500 font-bold uppercase">{settings.timeRange} Rank: #{i+1}</div>
+                      <div className="text-[10px] text-gray-500 font-bold uppercase">{student.score} Avg Score</div>
                     </div>
                   </div>
-                  <div className="flex items-center text-orange-500 font-display font-black">{student.score}</div>
+                  <button 
+                    onClick={() => handleVote(student.name)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      votedIds.has(student.name) 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-white dark:bg-gray-800 text-orange-500 border border-orange-500 hover:bg-orange-500 hover:text-white'
+                    }`}
+                  >
+                    {votedIds.has(student.name) ? <Check size={14} /> : <ThumbsUp size={14} />}
+                    <span>{votedIds.has(student.name) ? 'Voted' : 'Vote'}</span>
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         );
-      case 'critique_panel':
+      case 'judge_scores':
         return (
           <div key={id} className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-display font-black tracking-tight uppercase italic">Judge <span className="text-orange-500">Telemetry</span></h3>
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Latest {settings.limit} Reviews</span>
+              <h3 className="text-2xl font-display font-black tracking-tight uppercase italic text-orange-500">Judge Scores</h3>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Latest {settings.limit} Telemetries</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
@@ -210,7 +219,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             ))}
           </div>
         );
-      case 'student_list':
+      case 'student_voting':
         return (
           <div className="flex space-x-2 mt-4">
             {['Today', 'This Week', 'This Month'].map(range => (
@@ -228,12 +237,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             ))}
           </div>
         );
-      case 'critique_panel':
+      case 'judge_scores':
         return (
           <div className="mt-4 space-y-4">
             <div className="flex items-center justify-between text-xs font-bold text-gray-400">
-              <span>Critique Limit</span>
-              <span className="text-orange-500 font-display font-black">{widget.settings.limit} Panels</span>
+              <span>Display Limit</span>
+              <span className="text-orange-500 font-display font-black">{widget.settings.limit} Units</span>
             </div>
             <input 
               type="range" min="1" max="4" step="1"
@@ -243,7 +252,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             />
           </div>
         );
-      case 'rewards_card':
+      case 'rewards_progress':
         return (
           <button
             onClick={() => updateSettings(widget.id, { showStats: !widget.settings.showStats })}
@@ -272,8 +281,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <Settings2 size={28} className="text-white" />
           </div>
           <div>
-            <h2 className="text-3xl font-display font-black tracking-tight uppercase italic leading-none mb-1">Command <span className="text-orange-500">Portal</span></h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest opacity-60">Custom training telemetry enabled</p>
+            <h2 className="text-3xl font-display font-black tracking-tight uppercase italic leading-none mb-1">Command <span className="text-orange-500">Center</span></h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest opacity-60">Personalized Telemetry Control</p>
           </div>
         </div>
         <button 
@@ -281,7 +290,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           className="flex items-center justify-center space-x-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black px-8 py-4 rounded-2xl hover:bg-orange-500 dark:hover:bg-orange-500 dark:hover:text-white transition-all shadow-xl active:scale-95 text-xs uppercase tracking-[0.2em]"
         >
           <Settings size={18} />
-          <span>Configure Widgets</span>
+          <span>Manage Layout</span>
         </button>
       </div>
 
@@ -298,64 +307,86 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <div className="p-8 sm:p-10">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-2xl font-display font-black tracking-tight uppercase italic leading-none mb-1">Widget <span className="text-orange-500">Core</span></h3>
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Global Telemetry Config</p>
+                  <h3 className="text-2xl font-display font-black tracking-tight uppercase italic leading-none mb-1">Layout <span className="text-orange-500">Editor</span></h3>
+                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Add, Remove & Reorder</p>
                 </div>
                 <button onClick={() => setIsManageOpen(false)} className="p-3 bg-white dark:bg-gray-800 hover:bg-orange-500 hover:text-white transition-all rounded-2xl shadow-sm">
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                {widgets.map((widget, index) => (
-                  <div key={widget.id} className="bg-white dark:bg-gray-800 rounded-[2rem] border border-transparent hover:border-orange-500/20 transition-all p-1 shadow-sm overflow-hidden">
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center space-x-4">
-                        <button 
-                          onClick={() => toggleVisibility(widget.id)}
-                          className={`p-3 rounded-xl transition-all shadow-sm ${widget.visible ? 'text-orange-500 bg-orange-50 dark:bg-orange-500/10' : 'text-gray-400 bg-gray-100 dark:bg-gray-700/50 grayscale'}`}
-                        >
-                          {widget.visible ? <Eye size={18} /> : <EyeOff size={18} />}
-                        </button>
-                        <div className="flex flex-col">
-                          <span className={`font-black uppercase tracking-tight text-sm ${widget.visible ? 'opacity-100' : 'opacity-40'}`}>{widget.label}</span>
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                {/* Active Widgets */}
+                <div className="space-y-3">
+                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Active Dashboard Widgets</div>
+                  {widgets.map((widget, index) => (
+                    <div key={widget.id} className="bg-white dark:bg-gray-800 rounded-[2rem] border border-transparent hover:border-orange-500/20 transition-all p-1 shadow-sm overflow-hidden">
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center space-x-4">
                           <button 
-                            onClick={() => setExpandedWidget(expandedWidget === widget.id ? null : widget.id)}
-                            className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center mt-1 hover:underline"
+                            onClick={() => toggleVisibility(widget.id)}
+                            className={`p-3 rounded-xl transition-all shadow-sm ${widget.visible ? 'text-orange-500 bg-orange-50 dark:bg-orange-500/10' : 'text-gray-400 bg-gray-100 dark:bg-gray-700/50 grayscale'}`}
                           >
-                            <Settings size={10} className="mr-1" /> Configure Options
+                            {widget.visible ? <Eye size={18} /> : <EyeOff size={18} />}
+                          </button>
+                          <div className="flex flex-col">
+                            <span className={`font-black uppercase tracking-tight text-sm ${widget.visible ? 'opacity-100' : 'opacity-40'}`}>{widget.label}</span>
+                            <button 
+                              onClick={() => setExpandedWidget(expandedWidget === widget.id ? null : widget.id)}
+                              className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center mt-1 hover:underline"
+                            >
+                              <Settings size={10} className="mr-1" /> Configure
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex space-x-1 pr-2">
+                          <button onClick={() => moveWidget(index, 'up')} disabled={index === 0} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl disabled:opacity-20 transition-colors">
+                            <ChevronUp size={16} />
+                          </button>
+                          <button onClick={() => moveWidget(index, 'down')} disabled={index === widgets.length - 1} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl disabled:opacity-20 transition-colors">
+                            <ChevronDown size={16} />
                           </button>
                         </div>
                       </div>
-                      <div className="flex space-x-1 pr-2">
-                        <button onClick={() => moveWidget(index, 'up')} disabled={index === 0} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl disabled:opacity-20 transition-colors">
-                          <ChevronUp size={16} />
-                        </button>
-                        <button onClick={() => moveWidget(index, 'down')} disabled={index === widgets.length - 1} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl disabled:opacity-20 transition-colors">
-                          <ChevronDown size={16} />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Specific Config Section */}
-                    {expandedWidget === widget.id && (
-                      <div className="px-5 pb-6 pt-2 border-t border-gray-50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/20 animate-in slide-in-from-top-2 duration-300">
-                        <div className="flex items-center space-x-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                          <Filter size={10} />
-                          <span>Widget Specific Parameters</span>
+                      
+                      {expandedWidget === widget.id && (
+                        <div className="px-5 pb-6 pt-2 border-t border-gray-50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/20 animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex items-center space-x-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                            <Filter size={10} />
+                            <span>Configuration Parameters</span>
+                          </div>
+                          {renderWidgetConfigPanel(widget)}
                         </div>
-                        {renderWidgetConfigPanel(widget)}
-                      </div>
-                    )}
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Available to Add Gallery (Conceptual if visibility is used for Remove) */}
+                {widgets.some(w => !w.visible) && (
+                  <div className="space-y-3 pt-4">
+                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Available Gallery</div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {widgets.filter(w => !w.visible).map(w => (
+                        <button 
+                          key={w.id}
+                          onClick={() => toggleVisibility(w.id)}
+                          className="flex items-center justify-between p-4 bg-gray-200 dark:bg-gray-800/50 rounded-2xl hover:bg-orange-500 hover:text-white transition-all group"
+                        >
+                          <span className="font-bold text-sm uppercase tracking-tight">{w.label}</span>
+                          <PlusCircle size={20} className="opacity-50 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
 
               <button 
                 onClick={() => setIsManageOpen(false)}
                 className="w-full mt-10 bg-orange-500 text-white font-black py-5 rounded-[2rem] hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 uppercase tracking-[0.25em] text-xs active:scale-95"
               >
-                Sync with Command Center
+                Apply Changes
               </button>
             </div>
           </div>
