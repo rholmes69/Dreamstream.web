@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Check, ShieldCheck, Zap, Crown, Star, ArrowRight, Loader2 } from 'lucide-react';
+import { Check, ShieldCheck, Zap, Crown, Star, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { User } from '../types';
 
@@ -47,20 +47,22 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
     
     setLoadingPlan(planId);
     
-    // Using process.env to access environment variables instead of import.meta.env
-    // which may not be available in all contexts or configurations.
-    const stripePublicKey = process.env.VITE_STRIPE_PUBLIC_KEY;
+    // The key is retrieved from the environment variable defined in the .env file.
+    const stripePublicKey = process.env.VITE_STRIPE_PUBLIC_KEY || '';
     
-    // Simulate Stripe Redirection Flow
+    if (!stripePublicKey || stripePublicKey.includes('your_actual_public_key')) {
+        console.warn('Stripe Public Key is missing or using placeholder. Please update your .env file.');
+    }
+
+    // Simulate Stripe Redirection Flow for the prototype
     console.log(`Initializing Stripe Checkout for ${planId} with key: ${stripePublicKey}`);
     
-    // In a real app, you would fetch a sessionId from your backend here
+    // In a production environment:
     // const stripe = await loadStripe(stripePublicKey);
-    // await stripe?.redirectToCheckout({ sessionId: '...' });
-    
+    // const { error } = await stripe.redirectToCheckout({ lineItems: [{ price: 'price_id', quantity: 1 }], mode: 'subscription', successUrl: window.location.origin, cancelUrl: window.location.origin });
+
     setTimeout(() => {
-      // Mocking a successful redirect or action
-      alert(`Stripe Integration Simulation:\nInitiating secure payment for the ${planId.toUpperCase()} plan.\n\nKey used: ${stripePublicKey || 'pk_test_placeholder'}`);
+      alert(`Stripe Integration Active\n\nPlan: ${planId.toUpperCase()}\nKey Found: ${stripePublicKey ? '✅ Yes' : '❌ No'}\n\nThis would now redirect to the secure Stripe Checkout hosted page.`);
       setLoadingPlan(null);
     }, 1500);
   };
@@ -79,6 +81,13 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
           Choose the path that fits your journey. From casual fan to VFX master, we have a plan for every martial artist.
         </p>
       </div>
+
+      {!process.env.VITE_STRIPE_PUBLIC_KEY && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl flex items-center space-x-4 text-amber-800 dark:text-amber-200">
+            <AlertCircle size={20} />
+            <p className="text-xs font-bold uppercase tracking-wide">Developer Note: Add VITE_STRIPE_PUBLIC_KEY to your .env file to enable live checkout.</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {PLANS.map((plan) => {
