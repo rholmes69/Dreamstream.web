@@ -20,7 +20,9 @@ const getEnvVar = (key: string): string | undefined => {
   }
 };
 
-const STRIPE_CHECKOUT_URL = getEnvVar('VITE_STRIPE_CHECKOUT_URL') || "https://buy.stripe.com/test_4gM14p8bE57Vbkg9mY2Fa00";
+// Checkout URLs for different tiers
+const STRIPE_CHECKOUT_URL_ELITE = getEnvVar('VITE_STRIPE_CHECKOUT_URL_ELITE') || "https://buy.stripe.com/test_4gM14p8bE57Vbkg9mY2Fa00";
+const STRIPE_CHECKOUT_URL_MASTER = getEnvVar('VITE_STRIPE_CHECKOUT_URL_MASTER') || "https://buy.stripe.com/test_8x2dRbajM1VJgEAbv62Fa01";
 
 const PLANS = [
   {
@@ -30,7 +32,8 @@ const PLANS = [
     description: 'Perfect for watching and voting on matches.',
     features: ['Standard Video Quality', 'Public Chat Access', 'Community Voting', '1 Reward Claim / mo'],
     icon: Star,
-    color: 'gray'
+    color: 'gray',
+    checkoutUrl: null
   },
   {
     id: 'elite',
@@ -40,7 +43,8 @@ const PLANS = [
     features: ['Ad-free Viewing', 'Exclusive VFX Assets', 'Advanced Dojo Tutorials', 'Unlimited Reward Claims', 'Private Judge Feedback'],
     icon: Zap,
     color: 'orange',
-    popular: true
+    popular: true,
+    checkoutUrl: STRIPE_CHECKOUT_URL_ELITE
   },
   {
     id: 'master',
@@ -49,7 +53,8 @@ const PLANS = [
     description: 'The ultimate path for pro martial artists.',
     features: ['1-on-1 Master Critique', '4K Tutorial Downloads', 'Beta Feature Access', 'Physical Merch Discounts', 'VIP Arena Seat'],
     icon: Crown,
-    color: 'purple'
+    color: 'purple',
+    checkoutUrl: STRIPE_CHECKOUT_URL_MASTER
   }
 ];
 
@@ -61,13 +66,16 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
   };
 
   const handleUpgrade = async (planId: string) => {
-    if (planId === 'free') return;
+    const plan = PLANS.find(p => p.id === planId);
+    if (!plan || !plan.checkoutUrl) return;
     
     setLoadingPlan(planId);
     
     // Simulate a brief delay for UX before redirecting to the Stripe Payment Link
     setTimeout(() => {
-      window.location.href = STRIPE_CHECKOUT_URL;
+      if (plan.checkoutUrl) {
+        window.location.href = plan.checkoutUrl;
+      }
     }, 800);
   };
 
