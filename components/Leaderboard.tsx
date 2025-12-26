@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Trophy, Medal, Star, Flame, Crown, ChevronUp, ChevronDown, Target, Zap, User as UserIcon } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Trophy, Medal, Star, Flame, Crown, ChevronUp, ChevronDown, Target, Zap, User as UserIcon, TrendingUp } from 'lucide-react';
 import { LeaderboardEntry } from '../types';
 
 interface LeaderboardProps {
@@ -13,76 +13,88 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries: initialEntries, curr
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastPointGain, setLastPointGain] = useState<number>(0);
 
-  const currentUserEntry = entries.find(e => e.name.includes(currentUserName));
+  // Derive top 3 and the rest from sorted entries
+  const sortedEntries = useMemo(() => 
+    [...entries].sort((a, b) => b.points - a.points).map((entry, index) => ({
+      ...entry,
+      rank: index + 1
+    })), [entries]);
+
+  const currentUserEntry = sortedEntries.find(e => e.name.includes(currentUserName));
 
   useEffect(() => {
+    // Simulate live competition updates
     const interval = setInterval(() => {
       setIsUpdating(true);
-      const gain = Math.floor(Math.random() * 10);
-      setLastPointGain(gain);
+      const gain = Math.floor(Math.random() * 25);
+      if (gain > 15) setLastPointGain(gain);
       
       setTimeout(() => {
-        setEntries(prev => prev.map(entry => ({
-          ...entry,
-          points: entry.points + (entry.name.includes(currentUserName) ? gain : Math.floor(Math.random() * 5))
-        })));
+        setEntries(prev => prev.map(entry => {
+          const isUser = entry.name.includes(currentUserName);
+          const bonus = isUser ? gain : Math.floor(Math.random() * 10);
+          return {
+            ...entry,
+            points: entry.points + bonus
+          };
+        }));
         setIsUpdating(false);
-        // Reset gain badge after a few seconds
-        setTimeout(() => setLastPointGain(0), 2000);
-      }, 500);
-    }, 12000);
+        // Clear the visual gain indicator after 3 seconds
+        setTimeout(() => setLastPointGain(0), 3000);
+      }, 800);
+    }, 8000);
     return () => clearInterval(interval);
   }, [currentUserName]);
 
   return (
-    <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 relative pb-32">
+    <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 relative pb-40">
       <div className="text-center mb-12 relative">
-        <div className="inline-block p-5 bg-orange-500/10 rounded-[2rem] mb-6 text-orange-500 shadow-inner relative group">
+        <div className="inline-block p-5 bg-orange-500/10 rounded-[2.5rem] mb-6 text-orange-500 shadow-inner relative group border border-orange-500/10">
           <Trophy size={56} className="group-hover:scale-110 transition-transform duration-500" />
           <div className="absolute -top-2 -right-2 bg-orange-500 text-white p-2 rounded-full shadow-lg animate-bounce">
             <Zap size={14} fill="currentColor" />
           </div>
         </div>
-        <h2 className="text-5xl font-display font-black tracking-tight mb-3 uppercase italic">
+        <h2 className="text-5xl font-display font-black tracking-tight mb-3 uppercase italic leading-none">
           GLOBAL <span className="text-orange-500">LEGENDS</span>
         </h2>
         <p className="text-gray-500 dark:text-gray-400 font-medium max-w-lg mx-auto italic">
-          Forge your legacy. Real-time rankings synchronized with the DragonStream network.
+          The arena is live. Every vote and prediction shifts the global hierarchy.
         </p>
       </div>
 
       {/* Top 3 Podium */}
       <div className="grid grid-cols-3 gap-4 mb-16 items-end px-4">
-        {entries.slice(0, 3).map((entry) => {
+        {sortedEntries.slice(0, 3).map((entry) => {
           const isFirst = entry.rank === 1;
           const isThird = entry.rank === 3;
           const isCurrentUser = entry.name.includes(currentUserName);
           
           return (
             <div 
-              key={entry.rank} 
-              className={`flex flex-col items-center transition-all duration-500 ${
-                isFirst ? 'order-2 scale-110' : isThird ? 'order-3' : 'order-1'
-              } ${isUpdating ? 'opacity-70 scale-95' : 'opacity-100'}`}
+              key={entry.name} 
+              className={`flex flex-col items-center transition-all duration-700 ${
+                isFirst ? 'order-2 scale-110 mb-4' : isThird ? 'order-3' : 'order-1'
+              } ${isUpdating ? 'opacity-50 scale-95 blur-[1px]' : 'opacity-100'}`}
             >
               <div className="relative mb-6">
-                <div className={`absolute inset-0 rounded-full blur-xl opacity-20 animate-pulse ${
-                  isFirst ? 'bg-yellow-400' : 'bg-orange-500'
+                <div className={`absolute inset-0 rounded-full blur-2xl opacity-30 animate-pulse ${
+                  isFirst ? 'bg-yellow-400' : isCurrentUser ? 'bg-orange-500' : 'bg-gray-400'
                 }`} />
                 <div className="relative">
                   <img 
                     src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${entry.name}`} 
-                    className={`rounded-full border-4 relative z-10 transition-transform duration-500 ${
-                      isFirst ? 'w-28 h-28 border-yellow-400' : 'w-24 h-24 border-gray-300 dark:border-gray-600'
-                    } ${isCurrentUser ? 'ring-4 ring-orange-500 ring-offset-4 dark:ring-offset-gray-900 animate-float' : ''} shadow-2xl bg-white dark:bg-gray-800`}
-                    alt="" 
+                    className={`rounded-[2rem] border-4 relative z-10 transition-all duration-500 ${
+                      isFirst ? 'w-28 h-28 border-yellow-400 rotate-3' : 'w-24 h-24 border-gray-300 dark:border-gray-600'
+                    } ${isCurrentUser ? 'ring-4 ring-orange-500 ring-offset-4 dark:ring-offset-gray-900 shadow-orange-500/40' : ''} shadow-2xl bg-white dark:bg-gray-800`}
+                    alt={entry.name} 
                   />
                   {isCurrentUser && (
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full shadow-lg uppercase tracking-[0.2em] border-2 border-white dark:border-gray-900 animate-bounce">
-                      YOU
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 bg-orange-500 text-white text-[9px] font-black px-4 py-1.5 rounded-full shadow-xl uppercase tracking-[0.2em] border-2 border-white dark:border-gray-900 whitespace-nowrap">
+                      THE CHALLENGER
                     </div>
                   )}
-                  <div className={`absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-xl z-20 font-display font-black ${
+                  <div className={`absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-xl z-20 font-display font-black border-2 border-white dark:border-gray-900 ${
                     isFirst ? 'bg-yellow-400 rotate-12' : entry.rank === 2 ? 'bg-gray-400 -rotate-12' : 'bg-orange-400 rotate-6'
                   }`}>
                     {isFirst ? <Crown size={24} /> : entry.rank}
@@ -103,30 +115,30 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries: initialEntries, curr
       </div>
 
       {/* List - Enhanced with Current User Indicator */}
-      <div className="bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden relative">
+      <div className="bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden relative group/list">
         <div className="absolute top-0 left-0 w-1 bg-orange-500 h-full opacity-10" />
         <div className="divide-y divide-gray-100 dark:divide-gray-700">
-          {entries.map((entry) => {
+          {sortedEntries.map((entry) => {
             const isCurrentUser = entry.name.includes(currentUserName);
             const rankDirection = entry.rank % 2 === 0 ? 'up' : 'down';
             
             return (
               <div 
-                key={entry.rank} 
-                className={`p-6 sm:p-8 flex items-center justify-between transition-all duration-300 relative group overflow-hidden ${
+                key={entry.name} 
+                className={`p-6 sm:p-8 flex items-center justify-between transition-all duration-500 relative group overflow-hidden ${
                   isCurrentUser 
-                    ? 'bg-orange-500/5 dark:bg-orange-500/10' 
+                    ? 'bg-orange-500/[0.04] dark:bg-orange-500/[0.08]' 
                     : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'
-                }`}
+                } ${isUpdating ? 'translate-y-1 opacity-80' : 'translate-y-0'}`}
               >
                 {isCurrentUser && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 text-8xl font-display font-black text-orange-500/[0.03] pointer-events-none select-none tracking-tighter uppercase italic">
-                    CHALLENGER
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 text-8xl font-display font-black text-orange-500/[0.03] pointer-events-none select-none tracking-tighter uppercase italic -rotate-12">
+                    YOU
                   </div>
                 )}
 
                 <div className="flex items-center space-x-6 relative z-10">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-display font-black text-2xl transition-transform group-hover:scale-110 ${
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-display font-black text-2xl transition-all duration-300 group-hover:scale-110 ${
                     entry.rank <= 3 ? 'text-orange-500 bg-orange-500/10' : 'text-gray-300 dark:text-gray-600 bg-gray-100 dark:bg-gray-900/50'
                   }`}>
                     {entry.rank.toString().padStart(2, '0')}
@@ -135,26 +147,27 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries: initialEntries, curr
                     <div className="relative">
                       <img 
                         src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${entry.name}`} 
-                        className={`w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 border-2 transition-all ${
-                          isCurrentUser ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-transparent'
+                        className={`w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 border-2 transition-all duration-500 ${
+                          isCurrentUser ? 'border-orange-500 shadow-lg shadow-orange-500/20 scale-110 rotate-3' : 'border-transparent'
                         }`}
-                        alt="" 
+                        alt={entry.name} 
                       />
                       {isCurrentUser && (
-                        <div className="absolute -bottom-2 -left-2 bg-orange-500 text-white p-1 rounded-lg shadow-md animate-pulse">
+                        <div className="absolute -bottom-2 -left-2 bg-orange-500 text-white p-1.5 rounded-xl shadow-md animate-pulse">
                           <Target size={12} />
                         </div>
                       )}
                     </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className={`font-black uppercase tracking-tight text-lg ${isCurrentUser ? 'text-orange-500' : ''}`}>
+                        <span className={`font-black uppercase tracking-tight text-lg transition-colors ${isCurrentUser ? 'text-orange-500' : ''}`}>
                           {entry.name}
                         </span>
                         {isCurrentUser && (
-                          <span className="bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">
-                            YOU
-                          </span>
+                          <div className="flex items-center space-x-1 bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">
+                            <TrendingUp size={10} />
+                            <span>CLIMBING</span>
+                          </div>
                         )}
                         <div className="flex space-x-1">
                           {entry.badges.map((b, i) => (
@@ -178,23 +191,23 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries: initialEntries, curr
                     <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest leading-none mb-1">Telemetry Score</span>
                     <div className="flex items-center space-x-2">
                        {isCurrentUser && lastPointGain > 0 && (
-                         <span className="text-xs font-black text-green-500 animate-out fade-out slide-out-to-top duration-1000">+{lastPointGain}</span>
+                         <span className="text-xs font-black text-green-500 animate-bounce">+{lastPointGain}</span>
                        )}
-                      <span className={`font-display font-black text-2xl transition-all duration-500 tabular-nums ${isUpdating ? 'text-orange-500 scale-110' : ''}`}>
+                      <span className={`font-display font-black text-2xl transition-all duration-700 tabular-nums ${isUpdating ? 'text-orange-500 scale-110 blur-[0.5px]' : ''}`}>
                         {entry.points.toLocaleString()}
                       </span>
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div className={`transition-all duration-500 transform ${isUpdating ? 'scale-125' : ''}`}>
+                    <div className={`transition-all duration-700 transform ${isUpdating ? 'scale-150 rotate-180' : ''}`}>
                       {rankDirection === 'up' ? (
-                        <ChevronUp className="text-green-500 animate-bounce" size={24} />
+                        <ChevronUp className="text-green-500" size={24} />
                       ) : (
                         <ChevronDown className="text-red-500" size={24} />
                       )}
                     </div>
                     <span className={`text-[10px] font-black mt-1 ${rankDirection === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                      {rankDirection === 'up' ? '+2' : '-1'}
+                      {rankDirection === 'up' ? 'GAINED' : 'STEADY'}
                     </span>
                   </div>
                 </div>
@@ -204,30 +217,31 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries: initialEntries, curr
         </div>
       </div>
       
-      {/* Dynamic Standing Card (Sticky at bottom for engagement) */}
-      <div className="fixed bottom-24 lg:bottom-12 left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-20">
-        <div className="bg-gray-900/90 dark:bg-black/90 backdrop-blur-xl border border-white/10 p-5 rounded-[2rem] shadow-2xl flex items-center justify-between group hover:bg-orange-500 transition-colors duration-500">
-           <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-2xl bg-orange-500 group-hover:bg-white flex items-center justify-center text-white group-hover:text-orange-500 shadow-lg shadow-orange-500/20 transition-colors">
+      {/* Dynamic Standing Card (Sticky for engagement) */}
+      <div className="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-20">
+        <div className="bg-gray-900/90 dark:bg-black/90 backdrop-blur-xl border border-white/10 p-5 rounded-[2rem] shadow-2xl flex items-center justify-between group hover:border-orange-500/50 transition-all duration-500 relative overflow-hidden">
+           <div className="absolute inset-0 bg-orange-500/10 animate-pulse group-hover:bg-orange-500/20 pointer-events-none" />
+           <div className="flex items-center space-x-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
                  <UserIcon size={24} />
               </div>
               <div>
-                <div className="text-[10px] font-black uppercase text-white/50 group-hover:text-white/80 tracking-widest">Your Current Standing</div>
-                <div className="font-display font-black text-white text-xl uppercase italic">Rank #{currentUserEntry?.rank || '??'}</div>
+                <div className="text-[10px] font-black uppercase text-white/50 tracking-widest">Global Status</div>
+                <div className="font-display font-black text-white text-xl uppercase italic leading-none">Rank #{currentUserEntry?.rank || '??'}</div>
               </div>
            </div>
-           <div className="text-right">
-              <div className="text-[10px] font-black uppercase text-white/50 group-hover:text-white/80 tracking-widest">Dragon Points</div>
-              <div className="font-display font-black text-orange-500 group-hover:text-white text-xl tabular-nums">
-                {currentUserEntry?.points.toLocaleString() || '0'}
+           <div className="text-right relative z-10">
+              <div className="text-[10px] font-black uppercase text-white/50 tracking-widest">Current Multiplier</div>
+              <div className="font-display font-black text-orange-500 text-xl tabular-nums group-hover:text-white transition-colors">
+                {((currentUserEntry?.points || 0) / 1000).toFixed(2)}x
               </div>
            </div>
         </div>
       </div>
 
-      <div className="mt-12 text-center p-10 bg-gray-100 dark:bg-gray-900/50 rounded-[3rem] border-2 border-dashed border-gray-300 dark:border-gray-700/50 group hover:border-orange-500/30 transition-colors">
+      <div className="mt-12 text-center p-10 bg-gray-100 dark:bg-gray-900/50 rounded-[3rem] border-2 border-dashed border-gray-300 dark:border-gray-700/50 group hover:border-orange-500/30 transition-all">
         <p className="text-gray-500 dark:text-gray-400 font-bold italic text-sm group-hover:text-orange-500 transition-colors duration-500">
-          Syncing with global shards... Rankings update dynamically based on the DragonStream Pulse.
+          Syncing with DragonShards... {isUpdating ? 'Broadcasting live score adjustments...' : 'Rankings are currently stabilized.'}
         </p>
       </div>
     </div>
