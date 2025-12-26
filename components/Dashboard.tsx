@@ -4,7 +4,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } fro
 import { 
   TrendingUp, Star, Award, Save, Settings2, X, 
   ChevronUp, ChevronDown, Eye, EyeOff, Settings, 
-  Clock, Check, Filter, ThumbsUp, PlusCircle
+  Clock, Check, Filter, ThumbsUp, PlusCircle, RefreshCcw
 } from 'lucide-react';
 import { SkillMetric, User } from '../types';
 import { SKILL_METRICS } from '../constants';
@@ -19,6 +19,13 @@ interface WidgetConfig {
   visible: boolean;
   settings: any;
 }
+
+const INITIAL_JUDGE_DATA = [
+  { judge: 'Sensei Stone', comment: 'Excellent form on the roundhouse. Needs more spark.', score: '8.5' },
+  { judge: 'Master Blaze', comment: 'The particle flow was organic but color grading is off.', score: '9.0' },
+  { judge: 'Elder Cipher', comment: 'Technical precision in tracking is spot on.', score: '9.2' },
+  { judge: 'Sifu Gale', comment: 'Enhance the blur effects for intensity.', score: '8.8' },
+];
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { 
@@ -51,6 +58,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [expandedWidget, setExpandedWidget] = useState<WidgetId | null>(null);
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
+  const [isRefreshingScores, setIsRefreshingScores] = useState(false);
+  const [judgeScores, setJudgeScores] = useState(INITIAL_JUDGE_DATA);
+  
   const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
     const saved = localStorage.getItem('dragonstream_dashboard_v3');
     return saved ? JSON.parse(saved) : DEFAULT_WIDGETS;
@@ -79,6 +89,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const handleVote = (name: string) => {
     if (votedIds.has(name)) return;
     setVotedIds(prev => new Set(prev).add(name));
+  };
+
+  const fetchLatestScores = () => {
+    setIsRefreshingScores(true);
+    // Simulate API delay
+    setTimeout(() => {
+      const randomized = judgeScores.map(item => ({
+        ...item,
+        score: (Math.random() * (10 - 7) + 7).toFixed(1)
+      }));
+      setJudgeScores(randomized);
+      setIsRefreshingScores(false);
+    }, 1000);
   };
 
   const renderWidget = (id: WidgetId, settings: any) => {
@@ -168,17 +191,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         return (
           <div key={id} className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-display font-black tracking-tight uppercase italic text-orange-500">Judge Scores</h3>
+              <div className="flex items-center space-x-4">
+                <h3 className="text-2xl font-display font-black tracking-tight uppercase italic text-orange-500">Judge Scores</h3>
+                <button 
+                  onClick={fetchLatestScores}
+                  disabled={isRefreshingScores}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-full bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest ${isRefreshingScores ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <RefreshCcw size={12} className={isRefreshingScores ? 'animate-spin' : ''} />
+                  <span>{isRefreshingScores ? 'Syncing...' : 'Fetch Latest'}</span>
+                </button>
+              </div>
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Latest {settings.limit} Telemetries</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { judge: 'Sensei Stone', comment: 'Excellent form on the roundhouse. Needs more spark.', score: '8.5' },
-                { judge: 'Master Blaze', comment: 'The particle flow was organic but color grading is off.', score: '9.0' },
-                { judge: 'Elder Cipher', comment: 'Technical precision in tracking is spot on.', score: '9.2' },
-                { judge: 'Sifu Gale', comment: 'Enhance the blur effects for intensity.', score: '8.8' },
-              ].slice(0, settings.limit).map((c, i) => (
-                <div key={i} className="p-6 rounded-[2rem] bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-300">
+              {judgeScores.slice(0, settings.limit).map((c, i) => (
+                <div key={i} className="p-6 rounded-[2rem] bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em]">{c.judge}</span>
                     <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center font-display font-black text-xs text-orange-500">{c.score}</div>
